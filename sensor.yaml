@@ -1,0 +1,106 @@
+- platform: template
+  sensors:
+    pigiausia_energija_naktis_startas:
+      friendly_name: "Nakties pigiausias 2 val. periodas"
+      unique_id: pigiausia_energija_naktis_startas
+      value_template: >
+        {% set prices = state_attr('sensor.nordpool_kwh_lt_eur_3_10_021', 'raw_today') | default([]) %}
+        {% set n = 2 %}
+        {% set night_start = 0 %}
+        {% set night_end = 7 %}
+        {% set min_total = namespace(value=None) %}
+        {% set min_start = namespace(value=None) %}
+        {% set min_avg = namespace(value=None) %}
+        {% for i in range(prices | length - n + 1) %}
+          {% set hour = prices[i]['start'].hour %}
+          {% if night_start <= hour < night_end and prices|length > i+1 %}
+            {% set sum_ = prices[i]['value'] + prices[i+1]['value'] %}
+            {% set avg_ = sum_ / n %}
+            {% if min_total.value is none or sum_ < min_total.value %}
+              {% set min_total.value = sum_ %}
+              {% set min_avg.value = avg_ %}
+              {% set min_start.value = prices[i]['start'] %}
+            {% endif %}
+          {% endif %}
+        {% endfor %}
+        {{ min_start.value if min_start.value is not none else 'n/a' }}
+    pigiausia_energija_naktis_vidurkis:
+      friendly_name: "Nakties pigiausio 2 val. periodo kaina"
+      unique_id: pigiausia_energija_naktis_vidurkis
+      unit_of_measurement: "ct/kWh"
+      value_template: >
+        {% set prices = state_attr('sensor.nordpool_kwh_lt_eur_3_10_021', 'raw_today') | default([]) %}
+        {% set n = 2 %}
+        {% set night_start = 0 %}
+        {% set night_end = 7 %}
+        {% set min_total = namespace(value=None) %}
+        {% set min_avg = namespace(value=None) %}
+        {% for i in range(prices | length - n + 1) %}
+          {% set hour = prices[i]['start'].hour %}
+          {% if night_start <= hour < night_end and prices|length > i+1 %}
+            {% set sum_ = prices[i]['value'] + prices[i+1]['value'] %}
+            {% set avg_ = sum_ / n %}
+            {% if min_total.value is none or sum_ < min_total.value %}
+              {% set min_total.value = sum_ %}
+              {% set min_avg.value = avg_ %}
+            {% endif %}
+          {% endif %}
+        {% endfor %}
+        {# Nordpool EUR/MWh -> EUR/kWh: padalink iš 1000. EUR/kWh -> ct/kWh: padaugink iš 100. Taigi, padalink iš 10. #}
+        {% if min_avg.value is not none %}
+          {{ (min_avg.value / 10) | round(2) }}
+        {% else %}
+          n/a
+        {% endif %}
+
+    pigiausia_energija_diena_startas:
+      friendly_name: "Dienos pigiausias 2 val. periodas"
+      unique_id: pigiausia_energija_diena_startas
+      value_template: >
+        {% set prices = state_attr('sensor.nordpool_kwh_lt_eur_3_10_021', 'raw_today') | default([]) %}
+        {% set n = 2 %}
+        {% set day_start = 10 %}
+        {% set day_end = 18 %}
+        {% set min_total = namespace(value=None) %}
+        {% set min_start = namespace(value=None) %}
+        {% set min_avg = namespace(value=None) %}
+        {% for i in range(prices | length - n + 1) %}
+          {% set hour = prices[i]['start'].hour %}
+          {% if day_start <= hour < day_end and prices|length > i+1 %}
+            {% set sum_ = prices[i]['value'] + prices[i+1]['value'] %}
+            {% set avg_ = sum_ / n %}
+            {% if min_total.value is none or sum_ < min_total.value %}
+              {% set min_total.value = sum_ %}
+              {% set min_avg.value = avg_ %}
+              {% set min_start.value = prices[i]['start'] %}
+            {% endif %}
+          {% endif %}
+        {% endfor %}
+        {{ min_start.value if min_start.value is not none else 'n/a' }}
+    pigiausia_energija_diena_vidurkis:
+      friendly_name: "Dienos pigiausio 2 val. periodo kaina"
+      unique_id: pigiausia_energija_diena_vidurkis
+      unit_of_measurement: "ct/kWh"
+      value_template: >
+        {% set prices = state_attr('sensor.nordpool_kwh_lt_eur_3_10_021', 'raw_today') | default([]) %}
+        {% set n = 2 %}
+        {% set day_start = 10 %}
+        {% set day_end = 18 %}
+        {% set min_total = namespace(value=None) %}
+        {% set min_avg = namespace(value=None) %}
+        {% for i in range(prices | length - n + 1) %}
+          {% set hour = prices[i]['start'].hour %}
+          {% if day_start <= hour < day_end and prices|length > i+1 %}
+            {% set sum_ = prices[i]['value'] + prices[i+1]['value'] %}
+            {% set avg_ = sum_ / n %}
+            {% if min_total.value is none or sum_ < min_total.value %}
+              {% set min_total.value = sum_ %}
+              {% set min_avg.value = avg_ %}
+            {% endif %}
+          {% endif %}
+        {% endfor %}
+        {% if min_avg.value is not none %}
+          {{ (min_avg.value / 10) | round(2) }}
+        {% else %}
+          n/a
+        {% endif %}
