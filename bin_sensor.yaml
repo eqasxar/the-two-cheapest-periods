@@ -1,0 +1,25 @@
+- platform: template
+  sensors:
+    pigiausia_energija_bin_naktis:
+      friendly_name: "Nakties pigiausias 2 val. periodas"
+      value_template: >
+        {% set start = states('sensor.pigiausia_energija_naktis_startas') %}
+        {% if start not in ['n/a', '', None] %}
+          {% set start_dt = as_datetime(start) %}
+          {% set end_dt = start_dt + timedelta(hours=2) %}
+          {{ now() >= start_dt and now() < end_dt }}
+        {% else %}
+          false
+        {% endif %}
+
+    pigiausia_energija_bin_diena:
+      friendly_name: "Dienos pigiausias 2 val. periodas"
+      value_template: >
+        {% set start = states('sensor.pigiausia_energija_diena_startas') %}
+        {% if start not in ['n/a', '', None] %}
+          {% set start_dt = as_datetime(start) %}
+          {% set end_dt = start_dt + timedelta(hours=2) %}
+          {{ now() >= start_dt and now() < end_dt }}
+        {% else %}
+          false
+        {% endif %}
