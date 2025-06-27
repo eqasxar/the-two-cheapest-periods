@@ -1,0 +1,29 @@
+alias: Baterijos krovimas – pigiausias 2 val. periodas (diena)
+triggers:
+  - entity_id: binary_sensor.pigiausia_energija_bin_diena
+    to: "on"
+    trigger: state
+  - entity_id: binary_sensor.pigiausia_energija_bin_diena
+    to: "off"
+    trigger: state
+actions:
+  - choose:
+      - conditions:
+          - condition: state
+            entity_id: binary_sensor.pigiausia_energija_bin_diena
+            state: "on"
+        sequence:
+          - target:
+              entity_id: switch.test_relay
+            action: switch.turn_on
+            data: {}
+      - conditions:
+          - condition: state
+            entity_id: binary_sensor.pigiausia_energija_bin_diena
+            state: "off"
+        sequence:
+          - target:
+              entity_id: switch.test_relay
+            action: switch.turn_off
+            data: {}
+mode: single
